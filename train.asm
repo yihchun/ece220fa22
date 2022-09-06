@@ -30,6 +30,7 @@ DO_PUSH
 	LD R0, PUSHOUT
 	OUT
 	LDR R0, R1, #0	; R0 is the current inbound train car name
+	BRz DO_FAIL
 	JSR PUSH
 	ADD R1, R1, #1
 	BRnzp LOOPTOP
@@ -48,14 +49,20 @@ DO_THROUGH
 	ADD R2, R2, #1
 	BRnzp LOOPTOP
 
+DO_FAIL
+	LEA R0, FAILOUT
+	PUTS
+	HALT
+
 ALLDONE
 	HALT
 
 INORD .STRINGZ "ABCD"  ; pointer to current (input) car in R1
-OUTORD .STRINGZ "DCBA" ; pointer to current (expected) car in R2
+OUTORD .STRINGZ "DCBAZ" ; pointer to current (expected) car in R2
 THROUGHOUT .STRINGZ "T"
 PUSHOUT .STRINGZ "U"
 POPOUT .STRINGZ "O"
+FAILOUT .STRINGZ "Sorry, I can't do that"
 
 PUSH
 	ADD R6, R6, #-1
