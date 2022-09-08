@@ -1,0 +1,36 @@
+.ORIG x3000
+
+; set up
+LEA R0, KBISR
+STI R0, KBISRLOC
+LD R0, KBSRVAL
+STI R0, KBSR
+; enter main body (infinite loop)
+INFLOOP LD R0, DOT
+	OUT
+	BRnzp INFLOOP
+DOT .STRINGZ "."
+
+KBISR
+	ST R0, ISR_R0_SAVE
+	ST R7, ISR_R7_SAVE
+	; read character
+	LDI R0, KBDR
+	LDI R7, DSR
+	BRzp #-2
+	STI R0, DDR
+	LD R0, ISR_R0_SAVE
+	LD R7, ISR_R7_SAVE
+	RTI
+	
+
+ISR_R0_SAVE .FILL #0
+ISR_R7_SAVE .FILL #0
+KBISRLOC    .FILL x0180
+KBSR        .FILL xFE00
+KBDR        .FILL xFE02
+DSR         .FILL xFE04
+DDR         .FILL xFE06
+KBSRVAL     .FILL x4000
+
+.END
