@@ -58,7 +58,7 @@ ALLDONE
 	HALT
 
 INORD .STRINGZ "ABCD"  ; pointer to current (input) car in R1
-OUTORD .STRINGZ "DCBAZ" ; pointer to current (expected) car in R2
+OUTORD .STRINGZ "AB" ; pointer to current (expected) car in R2
 THROUGHOUT .STRINGZ "T"
 PUSHOUT .STRINGZ "U"
 POPOUT .STRINGZ "O"
