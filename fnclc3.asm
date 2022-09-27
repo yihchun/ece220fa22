@@ -16,7 +16,7 @@ SUMTON
 
 	; if (n <= 1) return n;
 	LDR R0, R5, #4
-	ADD R1, R0, #1
+	ADD R1, R0, #-1
 	BRnz RETURN_R0
 
 	; tmp = sumton(n-1)
@@ -43,3 +43,5 @@ RETURN_R0
 
 RTSTACK .BLKW #30
 STACK_START .FILL x4
+
+.END
