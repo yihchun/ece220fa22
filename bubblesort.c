@@ -70,6 +70,19 @@ int *linearsearch(int key, const int *array, int len) {
   return NULL;
 }
 
+/* Find key in arr[0..len-1]. If found, return pointer to that value.
+ * If not found, return NULL.
+ */
+int *binsearch_r(int key, const int *arr, int len) {
+  int mid = len/2;
+  if (len == 0) return NULL; /* Base case (step 3) */
+  if (key == arr[mid]) /* yay */
+    return (int *)(arr+mid);
+  if (key > arr[mid]) /* Right side */
+    return binsearch_r(key, arr+mid+1, len-mid-1);
+  return binsearch_r(key, arr, mid);
+}
+
 int *binsearch(int key, const int *array, int len) {
   int left = 0;
   int right = len-1;
@@ -138,6 +151,7 @@ int main() {
   int scr[LEN];
   int i;
   int n;
+  int *p;
   for (i=0; i<LEN; i++)
     arr[i] = fgetc(fp);
   /* arr[0] = -1;*/
@@ -146,6 +160,7 @@ int main() {
   print_array(arr, LEN);
   validate(arr, LEN);
   scanf("%d", &n);
-  printf("%p\n", binsearch(n, arr, LEN));
+  printf("%p\n", p = binsearch_r(n, arr, LEN));
+  assert(!p || *p == n);
   return 0;
 }
