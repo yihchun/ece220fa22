@@ -6,35 +6,50 @@ typedef struct llnode_s {
   struct llnode_s *next;
 } llnode;
 
-/* insert a value v at the head of a linked list */
-void queue_insert(llnode **head, int v) {
+typedef struct linkedlist_t {
+  struct llnode_s *head;
+  struct llnode_s *tail;
+} ll;
+
+void queue_insert(ll *q, int v) {
   llnode *n = malloc(sizeof(llnode));
   n->val = v;
-  n->next = *head;
-  *head = n;
+  n->next = NULL;
+  if (q->tail) {
+    q->tail->next = n;
+  } else {
+    q->head = n;
+  }
+  q->tail = n;
 }
 
-int dequeue(llnode **head) {
-  llnode *tmp;
+int queue_dequeue(ll *q) {
+  llnode *tmp = q->head;
   int ret;
-  if (!*head) return 0; /* queue is empty */
-  while ((*head)->next)
-    head = &((*head)->next);
-  tmp = *head;
-  *head = NULL;
+  if (!tmp) return 0;
+  q->head = tmp->next;
+  if (!q->head) {
+    q->tail = NULL;
+  }
   ret = tmp->val;
   free(tmp);
   return ret;
 }
 
 int main() {
-  llnode *head = NULL;
+  ll q = {NULL, NULL};
 
-  queue_insert(&head, 1);
-  queue_insert(&head, 2);
-  queue_insert(&head, 3);
-  printf("%d\n", dequeue(&head));
-  printf("%d\n", dequeue(&head));
-  printf("%d\n", dequeue(&head));
+  queue_insert(&q, 1);
+  queue_insert(&q, 2);
+  queue_insert(&q, 3);
+  printf("%d\n", queue_dequeue(&q));
+  printf("%d\n", queue_dequeue(&q));
+  printf("%d\n", queue_dequeue(&q));
+  queue_insert(&q, 4);
+  queue_insert(&q, 5);
+  queue_insert(&q, 6);
+  printf("%d\n", queue_dequeue(&q));
+  printf("%d\n", queue_dequeue(&q));
+  printf("%d\n", queue_dequeue(&q));
   return 0;
 }
