@@ -1,15 +1,27 @@
 .ORIG x3000
 
+; setup stack initial
 LD R6, STACK_START_ADDR
+
+; make the first call
 LD R1, SEARCH_FOR
 LEA R0, ROOT_PTR
 ADD R6, R6, #-2
 STR R0, R6, #0
 STR R1, R6, #1
 JSR BST_INSERT
+ADD R6, R6, #3
+
+LEA R0, ROOT_PTR
+LD R1, DELETE_ELT
+ADD R6, R6, #-2
+STR R0, R6, #0
+STR R1, R6, #1
+JSR BST_DELETE
 HALT
 
-SEARCH_FOR .FILL 4
+SEARCH_FOR .FILL 8
+DELETE_ELT .FILL 5
 
 MALLOC
 	ADD R6, R6, #-3
@@ -24,6 +36,94 @@ MALLOC
 	LDR R0, R6, #1 ; R0 save
 	ADD R6, R6, #2
 	RET
+
+BST_DELETE
+	ADD R6, R6, #-5
+	STR R5, R6, #2
+	ADD R5, R6, #1
+	STR R7, R5, #2
+
+BST_DELETE_WHILETOP
+	; while (*root != NULL && (*root)->val != v) {
+	LDR R0, R5, #4 ; R0 <- root
+	LDR R0, R0, #0 ; R0 <- *root
+	BRz BST_DELETE_WHILEBOT
+	LDR R1, R5, #5 ; R1 <- v
+	LDR R2, R0, #0 ; R2 <- (*root)->val
+	NOT R2, R2
+	ADD R2, R2, #1
+	ADD R2, R1, R2 ; R2 <- v-(*root)->val
+	BRz BST_DELETE_WHILEBOT
+
+	BRn #1
+	ADD R0, R0, #1 ; execute only when going right
+	ADD R0, R0, #1
+	STR R0, R5, #4 ; root = &((*root)->[left|right]);
+	BRnzp BST_DELETE_WHILETOP
+
+BST_DELETE_WHILEBOT
+	; if (!*root) return
+	; can do these two LDRs instead of ADD
+	;LDR R0, R5, #4 ; R0 <- root
+	;LDR R0, R0, #0 ; R0 <- *root
+	ADD R0, R0, #0 ; set cc
+	BRz BST_DELETE_DONE
+
+	; if ((*root)->left && (*root)->right)
+	LDR R1, R0, #1 ; R1 <- (*root)->left
+	BRz BST_DELETE_EASYCASE
+	LDR R2, R0, #2 ; R2 <- (*root)->right
+	BRz BST_DELETE_EASYCASE
+
+	;for (walk = &((*root)->right); (*walk)->left;
+	;     walk = &((*walk)->left))   ;
+	; init
+	ADD R1, R0, #2 ; R1 <- &(*root)->right
+	STR R1, R5, #0 ; walk <- R1
+BST_DELETE_FOR_TOP ; keep looping while (*walk)->left
+	LDR R1, R5, #0  ; R1 <- walk
+	LDR R1, R1, #0  ; R1 <- *walk
+	LDR R2, R1, #1  ; R2 <- (*walk)->left
+	BRz BST_DELETE_FOR_BOT
+	; reinit
+	ADD R1, R1, #1 ; R1 <- &((*walk)->left)
+	STR R1, R5, #0 ; walk <- R1
+	BRnzp BST_DELETE_FOR_TOP	
+
+BST_DELETE_FOR_BOT
+	; (*root)->val = (*walk)->val
+	; *root is in R0, *walk is in R1
+	LDR R2, R1, #0
+	STR R2, R0, #0
+	; root = walk
+	LDR R2, R5, #0
+	STR R2, R5, #4
+
+BST_DELETE_EASYCASE
+	; tmp = *root
+	LDR R0, R5, #4 ; R0 <- root
+	LDR R1, R0, #0 ; R1 <- *root
+	STR R1, R5, #-1 ; tmp = *root
+	ADD R2, R1, #1 ; R2 <- &((*root)->left)
+	LDR R3, R1, #1 ; R3 <- (*root)->left
+	BRnp #1
+	ADD R2, R2, #1
+	LDR R2, R2, #0 ; R2 <- (*root)->[left|right]
+	STR R2, R0, #0	; *root = R2
+	
+BST_DELETE_DONE
+	ADD R6, R5, #3
+	LDR R7, R5, #2
+	LDR R5, R5, #1
+	RET
+
+; tmp <- R6
+; walk <- R5
+; r5 save
+; r7 save
+; ret val +3
+; root +4
+; v +5
 
 BST_INSERT
 	ADD R6, R6, #-3 ; callee setup, 0 locals
@@ -111,9 +211,12 @@ ROOT_NODE .FILL 5
 LEFT_CHILD .FILL 3
 	   .FILL x0
 	   .FILL x0
-RIGHT_CHILD .FILL 8
+RIGHT_CHILD .FILL 9
+	   .FILL SEVEN_CHILD
 	   .FILL x0
-	   .FILL x0
+SEVEN_CHILD .FILL 7
+	    .FILL x0
+	    .FILL x0
 HEAP_POINTER .FILL HEAP_START
 HEAP_START .FILL x0
 
